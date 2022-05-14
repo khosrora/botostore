@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const path = require('path');
+const createError = require('http-errors');
 const { AllRoutes } = require('./router/router');
 
 module.exports = class Application {
@@ -52,12 +53,19 @@ module.exports = class Application {
     };
     errorHandling() {
         this.#app.use((req, res, next) => {
-            return res.status(404).json({ statusCode: 404, message: "آدرس مورد نظر پیدا نشد" });
-        })
+            next(createError.NotFound("آدرس مورد نظر پیدا نشد"));
+        });
         this.#app.use((error, req, res, next) => {
-            const statusCode = error.status || 500;
-            const message = error.message || "internal server error";
-            return res.status(statusCode).json({ statusCode, message });
+            const serverError = createError.InternalServerError();
+            const statusCode = error.status || serverError.status;
+            const message = error.message || serverError.message;
+            return res.status(statusCode).json({
+                data: null,
+                errors: {
+                    statusCode,
+                    message
+                }
+            });
         })
     };
 
