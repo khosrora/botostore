@@ -4,7 +4,7 @@ const router = require('express').Router();
 
 
 
-router.get("/", homeController.indexPage);
+router.post("/", homeController.indexPage);
 
 
 module.exports = { homeRoutes: router };
