@@ -1,16 +1,73 @@
-const createError = require("http-errors")
-const { authSchema } = require("../../../validators/user/auth.schema")
+const createError = require("http-errors");
+const { UserModel } = require("../../../../models/user");
+const { EXPIRES_IN, USER_ROLE } = require("../../../../utils/constance");
+const { randomNumberGenerator, signAccessToken } = require("../../../../utils/functions");
+const { getOtpSchema, checkOtpSchema } = require("../../../validators/user/auth.schema");
+const { Controller } = require("../../Controller");
 
 
 
-module.exports = new class AuthController {
-    async login(req, res, next) {
+module.exports = new class AuthController extends Controller {
+    async getOtp(req, res, next) {
         try {
-            const result = await authSchema.validateAsync(req.body);
-            console.log(result);
-            return res.status(200).send("خوش آمدید")
+            await getOtpSchema.validateAsync(req.body);
+            const { phone } = req.body;
+            const code = randomNumberGenerator();
+            const result = await this.saveUser(phone, code);
+            if (!result) throw createError.Unauthorized("ورود موفقیت آمیز نبود")
+            return res.status(200).send({
+                data: {
+                    statusCode: 200,
+                    message: "کد اعتبار سنجی با موفقیت برای شما ارسال شد",
+                    code,
+                    phone
+                }
+            })
         } catch (error) {
-            next(createError.BadRequest(error.message))
+            next(createError.BadRequest(error))
         }
+    }
+    async chckOtp(req, res, next) {
+        try {
+            const { phone, code } = req.body;
+            await checkOtpSchema.validateAsync(req.body);
+            const user = await UserModel.findOne({ phone });
+            if (!user) throw createError.NotFound("اطلاعات شما ثبت نشده است");
+            if (user.otp.code !== +code) throw createError.Unauthorized("کد وارد شده صحیح نمی باشد");
+            const now = Date.now();
+            if (+user.otp.expiresIn <= now) throw createError.Unauthorized("کد شما منقضی شده است");
+            const accessToken = await signAccessToken(user._id);
+            return res.json({
+                data: {
+                    accessToken
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+    async saveUser(phone, code) {
+        const result = await this.checkExistUser(phone)
+        let otp = {
+            code,
+            expiresIn: EXPIRES_IN
+        }
+        if (result) {
+            await this.updateUser(phone, { otp })
+        };
+        return !!(await UserModel.create({ phone, otp, roles: USER_ROLE }))
+    }
+    async checkExistUser(phone) {
+        const user = await UserModel.findOne({ phone });
+        return !!user;
+    }
+    async updateUser(phone, objectData = {}) {
+        Object.keys(objectData).forEach(key => {
+            if (["", " ", 0, undefined, null, undefined, "0", NaN].includes(objectData[key])) delete objectData[key]
+        });
+        const updateResult = await UserModel.updateOne({ phone }, {
+            $set: objectData
+        })
+        return !!updateResult.modifiedCount;
     }
 }

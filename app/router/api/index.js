@@ -16,7 +16,6 @@ const router = require('express').Router();
  *          404: 
  *              description: notFound
  */
-
 router.get("/", homeController.indexPage);
 
 
