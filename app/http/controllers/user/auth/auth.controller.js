@@ -1,6 +1,6 @@
 const createError = require("http-errors");
 const { UserModel } = require("../../../../models/user");
-const { EXPIRES_IN, USER_ROLE } = require("../../../../utils/constance");
+const { Roles } = require("../../../../utils/constance");
 const { randomNumberGenerator, signAccessToken, verifyRefreshToken, signRefreshToken } = require("../../../../utils/functions");
 const { getOtpSchema, checkOtpSchema } = require("../../../validators/user/auth.schema");
 const { Controller } = require("../../Controller");
@@ -40,7 +40,7 @@ module.exports = new class AuthController extends Controller {
             const refreshToken = await signRefreshToken(user._id);
             return res.json({
                 data: {
-                    accessToken , 
+                    accessToken,
                     refreshToken
                 }
             })
@@ -65,7 +65,6 @@ module.exports = new class AuthController extends Controller {
             next(error)
         }
     }
-
     async saveUser(phone, code) {
         const result = await this.checkExistUser(phone)
         let otp = {
@@ -75,7 +74,7 @@ module.exports = new class AuthController extends Controller {
         if (result) {
             return await this.updateUser(phone, { otp })
         };
-        return !!(await UserModel.create({ phone, otp, roles: USER_ROLE }))
+        return !!(await UserModel.create({ phone, otp, roles: [Roles.USER] }))
     }
     async checkExistUser(phone) {
         const user = await UserModel.findOne({ phone });
