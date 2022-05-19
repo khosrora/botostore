@@ -17,6 +17,7 @@ module.exports = class Application {
         this.#DB_URI = DB_URI;
         this.configApplication();
         this.connectToDataBase();
+        this.initRedis();
         this.createRoutes();
         this.errorHandling();
         this.createServer();
@@ -71,6 +72,9 @@ module.exports = class Application {
             process.exit(0);
         })
     };
+    initRedis() {
+        require('./utils/init_redis');
+    }
     createRoutes() {
         this.#app.use(AllRoutes)
     };

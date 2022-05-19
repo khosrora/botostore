@@ -70,7 +70,7 @@ module.exports = new class AuthController extends Controller {
         const result = await this.checkExistUser(phone)
         let otp = {
             code,
-            expiresIn: EXPIRES_IN
+            expiresIn: (new Date().getTime() + 120000)
         }
         if (result) {
             return await this.updateUser(phone, { otp })
