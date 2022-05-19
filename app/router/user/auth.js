@@ -59,5 +59,29 @@ router.post("/get-otp", authController.getOtp);
  */
 router.post("/check-otp", authController.chckOtp);
 
+/**
+ * @swagger
+ * /user/refresh-token:
+ *  post:
+ *      summery: send refresh token 
+ *      tags: [authenticated]
+ *      description: get otp & phone and send access token to client
+ *      parameters:
+ *      -   in: body
+ *          required : true 
+ *          type : string 
+ *          name : refreshToken
+ *      responses: 
+ *          201:
+ *              description: Success
+ *          400: 
+ *              description: Bad request
+ *          401:
+ *              description: Unauthorization
+ *          500:
+ *              description: Internal server error
+ */
+router.post("/refresh-token", authController.refreshToken);
+
 
 module.exports = { UserAuthRoutes: router };

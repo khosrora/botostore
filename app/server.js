@@ -6,6 +6,7 @@ const createError = require('http-errors');
 const swaggerUI = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const { AllRoutes } = require('./router/router');
+const core = require('cors');
 
 module.exports = class Application {
     #app = express();
@@ -23,6 +24,7 @@ module.exports = class Application {
 
 
     configApplication() {
+        this.#app.use(core());
         this.#app.use(morgan("dev"));
         this.#app.use(express.json());
         this.#app.use(express.urlencoded({ extended: true }));
@@ -31,20 +33,20 @@ module.exports = class Application {
             swaggerDefinition: {
                 info: {
                     title: "boto Store",
-                    version: "1.0.0" , 
-                    description : "website for sell course and learn",
-                    contact : {
-                        name : "khosroRA" ,
-                        email : "khosrora153333@gmail.com"
+                    version: "1.0.0",
+                    description: "website for sell course and learn",
+                    contact: {
+                        name: "khosroRA",
+                        email: "khosrora153333@gmail.com"
                     }
                 },
-                servers :[
+                servers: [
                     {
-                        url : "http://localhost:5000"
+                        url: "http://localhost:5000"
                     }
                 ]
             },
-            apis :["./app/router/**/*.js"]
+            apis: ["./app/router/**/*.js"]
         })))
     }
     createServer() {
